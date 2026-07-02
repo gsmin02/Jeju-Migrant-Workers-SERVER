@@ -1,0 +1,68 @@
+# 제이 (제주 이주민 · Jeju Migrant Workers) — 서버
+
+제주 이주노동자 임금체불 대응 앱 **제이(제주 이주민 · Jeju Migrant Workers)** 의 백엔드. NestJS로 구축했으며, 쌓인 근무 기록으로 **임금체불 진정서 초안을 자동 생성**하는 API를 제공한다.
+
+- 클라이언트: [Jeju-Migrant-Workers](https://github.com/gsmin02/Jeju-Migrant-Workers) (Flutter)
+- 프레임워크: NestJS 10 (TypeScript)
+- LLM: Google Gemini (`gemini-2.5-flash`) 또는 Anthropic Claude — 키가 없으면 준비된 샘플로 폴백
+
+## API
+
+| 메서드 | 경로 | 설명 |
+|---|---|---|
+| GET | `/api/health` | 헬스체크 → `{ "ok": true }` |
+| POST | `/api/complaint` | 진정서 생성 |
+
+### `POST /api/complaint`
+
+요청 바디:
+```json
+{
+  "name": "Bibek",
+  "nationality": "네팔",
+  "lang": "ne",
+  "promisedWage": "월 220만원",
+  "unpaidPeriod": "2026년 5월 ~ 6월",
+  "logs": [
+    { "date": "6월 30일", "in": "07:00", "out": "18:30", "src": "GPS" }
+  ]
+}
+```
+
+응답:
+```json
+{
+  "complaint_ko": "임금체불 진정서 ...",
+  "summary_native": "This is a draft wage-theft complaint ...",
+  "fallback": false
+}
+```
+
+- `complaint_ko` — 고용노동부 제출용 한국어 진정서 초안 (관련 법령 조문 포함, "참고용 초안" 고지 포함)
+- `summary_native` — 사용자 모국어(`lang`) 요약 + 제출·상담 안내
+- `fallback` — LLM 호출 실패 시 `true` (준비된 샘플 반환)
+
+## 실행
+
+```bash
+npm install
+cp .env.example .env      # GEMINI_API_KEY 또는 ANTHROPIC_API_KEY 입력
+npm run start             # http://localhost:8080
+# 개발: npm run start:dev  (watch)
+# 배포: npm run build && npm run start:prod
+```
+
+## 구조
+
+```
+src/
+├── main.ts                       # 부트스트랩 (CORS, 포트 8080)
+├── app.module.ts                 # 루트 모듈 (ConfigModule 전역)
+└── complaint/
+    ├── complaint.module.ts
+    ├── complaint.controller.ts   # GET /api/health, POST /api/complaint
+    ├── complaint.service.ts      # Gemini/Claude 호출 + 폴백
+    └── complaint.dto.ts          # 요청/응답 타입
+```
+
+> ⚠️ 생성물은 참고용 초안이며 법률 자문이 아니다. 제출 전 고용노동부 1350 또는 제주외국인노동자지원센터(064-712-1141) 확인 안내를 문서에 포함한다.
