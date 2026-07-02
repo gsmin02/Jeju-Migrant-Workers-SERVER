@@ -1,0 +1,11 @@
+services:
+  server:
+    build: .
+    image: jeju-migrant-workers-server
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env          # GEMINI_API_KEY 또는 ANTHROPIC_API_KEY (없으면 샘플 폴백)
+    environment:
+      - PORT=8080
+    restart: unless-stopped

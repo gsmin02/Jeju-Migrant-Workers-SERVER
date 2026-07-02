@@ -52,6 +52,23 @@ npm run start             # http://localhost:8080
 # 배포: npm run build && npm run start:prod
 ```
 
+## Docker
+
+```bash
+cp .env.example .env            # 키 입력 (없으면 샘플 폴백)
+
+# docker compose (권장)
+docker compose up --build       # http://localhost:8080
+
+# 또는 순수 docker
+docker build -t jeju-migrant-workers-server .
+docker run -d --env-file .env -p 8080:8080 jeju-migrant-workers-server
+```
+
+- 멀티스테이지 빌드(빌드/런타임 분리)로 이미지 경량화 (node:22-slim 기반)
+- `HEALTHCHECK`로 `/api/health` 자동 감시 → `docker ps` 에서 `healthy` 표시
+- `.env`는 이미지에 포함되지 않으며 런타임에 `--env-file`/`env_file`로 주입
+
 ## 구조
 
 ```
